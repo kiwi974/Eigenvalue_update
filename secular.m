@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Solve the secular equation corresponding to our project.
+% Solve the secular equation with adequated Newtons method.
 % Param : -v : the vector such that v*v^T it ourmatrix perturbation.
 %		  -d : the vector of the eigenvalues of D
 %		  -i : the indice of the interval in which we want to find a zero 
@@ -25,6 +25,35 @@ function [l] = secular(v,d,i,l0)
 	l = newton(@(x)h(x,c1,c2,c3,d,i);
 end
 
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Solve the secular equation thanks to a dichotomous search. 
+% Param : -f : the function which we search a zero.
+%		  -a : the lower bound of the research interval.
+%		  -b : the upper bound of the research interval.
+%		  -itMax : maximum number of iterations to do. 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function x = dichotomous(f,a,b,itMax) 
+	
+	c = (a+b)/2;
+
+	while ((abs(f(c)) >= epsilon) && (it < itMax))
+		if (phi(c)*phi(b) <= 0)
+			a = c;
+		else 
+			b = c;
+		end 
+		c = (a+b)/2;
+		it = it + 1;
+	end 
+end
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%% AUXILIARY FUNCTIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Define the function h that locally fit with f
 function y = h(x,c1,c2,c3,d,i)
