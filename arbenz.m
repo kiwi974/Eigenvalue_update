@@ -4,7 +4,7 @@
 function [Q,L] = arbenz(T)
 
 	if (length(T) == 1)
-		L = T;
+		L = T
 		Q = 1;
 	else 
 		
@@ -37,8 +37,8 @@ function [Q,L] = arbenz(T)
 		
 		%%%%%%%%%%%%%%%%%%%%% Shaping of D and v %%%%%%%%%%%%%%%%%%%%%%%
 		D = zeros(n,n);
-		D(1:m,1:m) = L1;
-		D(m+1:n,m+1:n) = L2;
+		D(1:m,1:m) = diag(L1);
+		D(m+1:n,m+1:n) = diag(L2);
 		v = zeros(n,1);
 		v(1:m) = (Q1')*u(1:m);
 		v(m+1:n) = (Q2')*u(m+1:n);
@@ -63,11 +63,15 @@ function [Q,L] = arbenz(T)
 		lambda = zeros(n,1);
 		
 		d = diag(D); % column vector
+        
+        %plotsecular(@(x)secular(x,v,d,rho),-20,20,1000,d');
 		
-		for i = 1 : (n-1) 
+		for i = 1 : (n-1)
 			L(i) = dichotomous(@(x)secular(x,v,d,rho),d(i),d(i+1),itMax,epsilon);
-			L(i)
-		end 
+        end 
+        
+        disp(["here 1"])
+        
 	
 		% Computation of the additionnal eigenvalue : we use a 
 		% dichotomous search
@@ -82,22 +86,27 @@ function [Q,L] = arbenz(T)
 			lastZero = dichotomous(@(x)secular(x,v,d,rho),cs,d(1),itMax,epsilon);
 			lambda(2:n) = L;
 			lambda(1) = lastZero;
-		end
-		
+        end
+        
+        L = lambda;
+        disp(["here 2"])
+        
 		%%%%%%%%%%%%% Find the eigenvectors of D+rho*v*v' %%%%%%%%%%%%%%
 		Qp = zeros(n,n);
 		for j = 1:n
 			M = inv((lambda(j)*eye(n) - D))*v;
 			Q(:,j) = M ./ norm(M,2);
-		end
+        end
 		
-		
+		disp(["here 3"])
+        
 		%%%%%%%%%%% Form the matrix of the eigenvectors of T %%%%%%%%%%%
 		Q = zeros(n,n);
 		Q(1:m,1:m) = Q1;
 		Q(m+1:n,m+1:n) = Q2;
 		Q = Q*Qp';
 		
+        disp(["here 4"])
 		
 	end
 	
@@ -117,15 +126,20 @@ end
 function d = changeSign(f,di,sense)
 	d = di;
 	step = 50;
+    if (sense == "d")
+		fd = f(di-1/100);
+    else 
+        fd = f(di+1/100);
+    end
 	converged = false;
 	while (~converged)
-		old = d;
 		if (sense == "d")
 			d = d - step;
 		else 
 			d = d + step;
-		end
-		converged = f(old)*f(d) < 0;
+        end
+        %disp([f(old)*f(d) < 0])
+		converged = fd*f(d) < 0;
 	end
 end
 
@@ -176,7 +190,29 @@ end
 function y = secular(x,v,d,rho)
 	sum = 0;
 	for k = 1:length(d)
-		sum = sum + v(k)^2/(x-d(k));
+		sum = sum + (v(k)^2)/(x-d(k));
 	end
 	y = 1 - rho*sum;
+end
+
+
+
+function [] = plotsecular(f,a,b,n,d)
+    h = (b-a)/n;
+    x = a:h:b;
+    y = zeros(1,n+1);
+    lengthd= length(d);
+    z = ones(1, lengthd);
+    for i = 1:(n+1)
+        y(i)=f(x(i));
+    end
+    for i = 1:lengthd
+        z(i) = Inf;
+    end
+    hold on
+    plot(x,y,'-b')
+    plot([d(1) d(1)],[-Inf Inf],'-r')
+    plot([d(lengthd) d(lengthd)],[-Inf Inf],'-m')
+    hold off
+    
 end
