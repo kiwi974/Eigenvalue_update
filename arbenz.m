@@ -4,13 +4,13 @@
 function [Q,L] = arbenz(T)
 
 	if (length(T) == 1)
-		L = T
+		L = T;
 		Q = 1;
 	else 
 		
 		%%%%%%%%%%%%%%%%%% Constants to search zeros %%%%%%%%%%%%%%%%%%%
 		itMax = 100;
-		epsilon = 10^(-3);
+		epsilon = 10^(-6);
 	
 		%%%%%%%%%%%%%%%%%%%%%% Partitioning of T %%%%%%%%%%%%%%%%%%%%%%%
 		n = length(T);
@@ -28,7 +28,8 @@ function [Q,L] = arbenz(T)
 		u(m) = -1;
 		u(m+1) = 1;
 		rho = -bm;
-		%T = [T1 0 ; 0 T2] + rho*u*u'
+        fill = zeros(m,n-m);
+		%T = [T1 fill ; fill' T2] + rho*u*u'
 		
 		%%%%%%%%%%%% Call of the algorithm on T1 and T2 %%%%%%%%%%%%%%%%
 		[Q1,L1] = arbenz(T1);  % Q1 is mxm
@@ -59,20 +60,30 @@ function [Q,L] = arbenz(T)
 		% d(i) and d(i+1) with i = 1 : n-1. Then, we have to find an 
 		% additionnal zero according to the sign of rho.  
 		
-		L = zeros(n-1,1);  % then we will concatenant the last zero
+		L = zeros(n-1,1);  % then we will concatenate the last zero
 		lambda = zeros(n,1);
 		
 		d = diag(D); % column vector
+        range = sort(diag(D));
         
+        
+        %figure();
         %plotsecular(@(x)secular(x,v,d,rho),-20,20,1000,d');
 		
 		for i = 1 : (n-1)
-			L(i) = dichotomous(@(x)secular(x,v,d,rho),d(i),d(i+1),itMax,epsilon);
+			L(i) = dichotomous(@(x)secular(x,v,d,rho),range(i),range(i+1),itMax,epsilon);
         end 
         
-        disp(["here 1"])
         
-	
+        d
+        L
+        
+        
+        T1
+        T2
+        
+        
+	    disp(["here 1"])
 		% Computation of the additionnal eigenvalue : we use a 
 		% dichotomous search
 		lastZero = 0;
@@ -89,6 +100,8 @@ function [Q,L] = arbenz(T)
         end
         
         L = lambda;
+        disp(["Les zéros trouvés sont : "])
+        L
         disp(["here 2"])
         
 		%%%%%%%%%%%%% Find the eigenvectors of D+rho*v*v' %%%%%%%%%%%%%%
@@ -110,7 +123,8 @@ function [Q,L] = arbenz(T)
 		
 	end
 	
-end
+ end
+
 
 
 
@@ -127,9 +141,9 @@ function d = changeSign(f,di,sense)
 	d = di;
 	step = 50;
     if (sense == "d")
-		fd = f(di-1/100);
+		fd = f(di-1/10000);
     else 
-        fd = f(di+1/100);
+        fd = f(di+1/10000);
     end
 	converged = false;
 	while (~converged)
@@ -174,7 +188,7 @@ function c = dichotomous(f,a,b,itMax,epsilon)
 		flag = 2;
 	else 
 		flag = 1;
-	end
+    end
 end
 
 
@@ -202,17 +216,13 @@ function [] = plotsecular(f,a,b,n,d)
     x = a:h:b;
     y = zeros(1,n+1);
     lengthd= length(d);
-    z = ones(1, lengthd);
     for i = 1:(n+1)
         y(i)=f(x(i));
-    end
-    for i = 1:lengthd
-        z(i) = Inf;
     end
     hold on
     plot(x,y,'-b')
     plot([d(1) d(1)],[-Inf Inf],'-r')
     plot([d(lengthd) d(lengthd)],[-Inf Inf],'-m')
     hold off
-    
+
 end
