@@ -10,7 +10,7 @@ function [Q,L] = arbenz(T)
 		
 		%%%%%%%%%%%%%%%%%% Constants to search zeros %%%%%%%%%%%%%%%%%%%
 		itMax = 100;
-		epsilon = 10^(-6);
+		epsilon = 10^(-4);
 	
 		%%%%%%%%%%%%%%%%%%%%%% Partitioning of T %%%%%%%%%%%%%%%%%%%%%%%
 		n = length(T);
@@ -29,12 +29,12 @@ function [Q,L] = arbenz(T)
 		u(m+1) = 1;
 		rho = -bm;
         fill = zeros(m,n-m);
-		%T = [T1 fill ; fill' T2] + rho*u*u'
+		Tconst = [T1 fill ; fill' T2] + rho*u*u';
+        
 		
 		%%%%%%%%%%%% Call of the algorithm on T1 and T2 %%%%%%%%%%%%%%%%
 		[Q1,L1] = arbenz(T1);  % Q1 is mxm
 		[Q2,L2] = arbenz(T2);  % Q2 is (m+(1))x(m(+1))
-		
 		
 		%%%%%%%%%%%%%%%%%%%%% Shaping of D and v %%%%%%%%%%%%%%%%%%%%%%%
 		D = zeros(n,n);
@@ -68,22 +68,21 @@ function [Q,L] = arbenz(T)
         
         
         %figure();
-        %plotsecular(@(x)secular(x,v,d,rho),-20,20,1000,d');
+        %plotsecular(@(x)secular(x,v,d,rho),-20,20,10000,d');
 		
 		for i = 1 : (n-1)
 			L(i) = dichotomous(@(x)secular(x,v,d,rho),range(i),range(i+1),itMax,epsilon);
         end 
         
-        
+        disp(["----------------------------------------------------------"])
+        disp(["For the matrix : "])
+        Tconst
+        disp(["Eigenvalues are : "])
         d
+        disp(["And between them we found the zeros"])
         L
         
-        
-        T1
-        T2
-        
-        
-	    disp(["here 1"])
+	    disp(["Now we have to find the last zero according to the sign of rho."])
 		% Computation of the additionnal eigenvalue : we use a 
 		% dichotomous search
 		lastZero = 0;
@@ -100,18 +99,21 @@ function [Q,L] = arbenz(T)
         end
         
         L = lambda;
-        disp(["Les zéros trouvés sont : "])
+        
+        disp(["All the zeros found are : "])
         L
-        disp(["here 2"])
         
 		%%%%%%%%%%%%% Find the eigenvectors of D+rho*v*v' %%%%%%%%%%%%%%
 		Qp = zeros(n,n);
 		for j = 1:n
-			M = inv((lambda(j)*eye(n) - D))*v;
-			Q(:,j) = M ./ norm(M,2);
+			M = (lambda(j)*eye(n) - D)\v;
+			Qp(:,j) = M ./ norm(M,2);
+            %(D+rho*v*v')*Qp(:,j)
+            %lambda(j)*Qp(:,j)
         end
-		
-		disp(["here 3"])
+	
+		disp(["Computation of Qp is done and we found :"])
+        Qp 
         
 		%%%%%%%%%%% Form the matrix of the eigenvectors of T %%%%%%%%%%%
 		Q = zeros(n,n);
@@ -119,7 +121,10 @@ function [Q,L] = arbenz(T)
 		Q(m+1:n,m+1:n) = Q2;
 		Q = Q*Qp';
 		
-        disp(["here 4"])
+        disp(["Compputation of Q is done and we found :"])
+        Q
+        
+        disp(["----------------------------------------------------------"])
 		
 	end
 	
@@ -171,13 +176,15 @@ end
 
 function c = dichotomous(f,a,b,itMax,epsilon) 
 	
+    a = a + 0.00000001;
+    b = b - 0.00000001;
 	c = (a+b)/2;
 	it = 1;
 
 	while ((abs(f(c)) >= epsilon) && (it < itMax))
 		if (f(c)*f(b) <= 0)
 			a = c;
-		else 
+        else 
 			b = c;
 		end 
 		c = (a+b)/2;
@@ -220,9 +227,10 @@ function [] = plotsecular(f,a,b,n,d)
         y(i)=f(x(i));
     end
     hold on
+    title(strcat('Eigenvalue = ',num2str(min(d)), ' , ', num2str(max(d))))
     plot(x,y,'-b')
-    plot([d(1) d(1)],[-Inf Inf],'-r')
-    plot([d(lengthd) d(lengthd)],[-Inf Inf],'-m')
+    plot([(a+b)/2 (a+b)/2],[1 1],'-r')
+    %plot([d(lengthd) d(lengthd)],[-Inf Inf],'-m')
     hold off
 
 end
