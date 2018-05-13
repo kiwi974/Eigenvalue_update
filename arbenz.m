@@ -1,4 +1,5 @@
 % T = (diag(1:1:5) + diag(ones(4,1),1) + diag(ones(4,1),-1))
+% T = (diag([0.5 0.31 0.57 0.99]) + diag([0.11 0.11 0.11],1) + diag([0.11 0.11 0.11],-1))
 % no deflation necessary
 
 function [Q,L] = arbenz(T)
