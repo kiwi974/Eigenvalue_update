@@ -55,6 +55,10 @@ function [Q,L] = divide(T)
         [~,~,eigenvalues,eigenvectors] = deflation(D,length(D),v,rho,theta,[],[],1);
         leneig = length(eigenvalues);
         
+        disp([" "])
+        disp(["----------------------------------------------------------"])
+        disp(["----------------------------------------------------------"])
+        
         disp(["After the deflation, we got the eigenvalues : "]);
         eigenvalues
 		
@@ -83,7 +87,7 @@ function [Q,L] = divide(T)
             end
         end
         
-        disp(["----------------------------------------------------------"])
+        
         disp(["For the matrix : "])
         Tconst
         disp(["Eigenvalues are : "])
@@ -136,9 +140,10 @@ function [Q,L] = divide(T)
         Q
         
         disp(["----------------------------------------------------------"])
+        disp(["----------------------------------------------------------"])
+        disp([" "])
 		
-	end
-	
+    end	
  end
 
 
