@@ -13,12 +13,12 @@ function [Dnd,vnd,eigenvalues,eigenvectors] = deflation(D,n,v,rho,theta,eigenval
         normvi = norm(v(i),1);
         if (normvi < C*normT)
             eigenvalues = [eigenvalues D(i,i)];
-            eigenvectors = [eigenvectors e(i,n)];
+            eigenvectors = [eigenvectors ; e(i,n)];
         else 
             for j = (i+1):n
                 if (abs(D(i,i)-D(j,j)) < C*normT)
                     G = givens(n,i,j,theta);
-                    [Dnd,vnd] = deflation(G'*D,n,G'*v,rho,theta,eigenvalues,eigenvectors,j);
+                    [Dnd,vnd,eigenvalues,eigenvectors] = deflation(G'*D,n,G'*v,rho,theta,eigenvalues,eigenvectors,j);
                 end
             end
         end
