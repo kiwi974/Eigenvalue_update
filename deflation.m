@@ -54,4 +54,4 @@ end
 %theta = pi/4;
 %eigenvalues = [];
 %eigenvectors = [];
-%[Dnd,vnd,eigenvalues,eigenvectors] = deflation(D,6,v,rho,theta,eigenvalues,eigenvectors)
+%[Dnd,vnd,eigenvalues,eigenvectors] = deflation(D,6,v,rho,theta,eigenvalues,eigenvectors,1)
