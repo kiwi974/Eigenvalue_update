@@ -74,7 +74,7 @@ function [Q,L] = divide(T)
 		
 		d = diag(D); % column vector
         range = sort(diag(D));
-        
+                
         
         %figure();
         %plotsecular(@(x)secular(x,v,d,rho),-20,20,10000,d');
@@ -98,7 +98,8 @@ function [Q,L] = divide(T)
 	    disp(["Now we have to find the last zero according to the sign of rho."])
 		% Computation of the additionnal eigenvalue : we use a 
 		% dichotomous search
-		if ((rho > 0) && (~foundEig(leneig,eigenvalues,0,range(n),"out",rho)))  % search between d(n) and Inf
+        found = foundEig(leneig,eigenvalues,0,range(n),"out",rho);
+        if ((rho > 0) && (~found))  % search between d(n) and Inf
 			cs = changeSign(@(x)secular(x,v,d,rho),range(n),"i");
 			lastZero = dichotomous(@(x)secular(x,v,d,rho),range(n),cs,itMax,epsilon);
 			lambda = [lambda lastZero];
@@ -110,6 +111,7 @@ function [Q,L] = divide(T)
             end
         end
         
+        lambdaQp = lambda;
         lambda = [lambda eigenvalues];
         
         disp(["All the zeros found are : "])
@@ -118,14 +120,21 @@ function [Q,L] = divide(T)
         
 		%%%%%%%%%%%%% Find the eigenvectors of D+rho*v*v' %%%%%%%%%%%%%%
 		Qp = zeros(n,n);
-        for j = 1:n
-			M = (lambda(j)*eye(n) - D)\v;
+        for j = 1:length(lambdaQp)
+			M = (lambdaQp(j)*eye(n) - D)\v;
 			Qp(:,j) = M ./ norm(M,2);
-            %(D+rho*v*v')*Qp(:,j)
-            %lambda(j)*Qp(:,j)
         end
         
-        Qp = [Qp eigenvectors'];
+        Qp
+        
+        % We complete Qp with the eigenvectors found during the deflation
+        if (length(eigenvectors) >= 1)
+            s = size(eigenvectors);
+            for j = 1:s(1)
+                Qp(:,j+length(lambdaQp)) = eigenvectors(j,:)';
+            end
+            Qp
+        end
 	
 		%disp(["Computation of Qp is done and we found :"])
         %Qp 
@@ -137,7 +146,7 @@ function [Q,L] = divide(T)
 		Q = Q*Qp';
 		
         disp(["Compputation of Q is done and we found :"])
-        Q
+        
         
         disp(["----------------------------------------------------------"])
         disp(["----------------------------------------------------------"])
@@ -160,7 +169,7 @@ function [Q,L] = divide(T)
 
 function d = changeSign(f,di,sense)
 	d = di;
-	step = 50;
+	step = 100;
     if (sense == "d")
 		fd = f(di-1/10000);
     else 
@@ -251,7 +260,7 @@ end
 
 
 
-function f = found(x,n,di,di1,place,rho)
+function [f,v] = found(x,n,di,di1,place,rho)
     if (place == "in")
         f = false;
         i = 1;
@@ -262,6 +271,9 @@ function f = found(x,n,di,di1,place,rho)
     else
         if (rho > 0)
             f = (x > di1);
+            if f 
+                v = x;
+            end
         else
             if (rho < 0)
                 f = (x < di);
@@ -276,9 +288,10 @@ end
 function alreadyFound = foundEig(leneig,eigenvalues,ri,ri1,place,rho)
     alreadyFound = false;
     k = 1;
-    if (eigenvalues ~= [])
+    if (length(eigenvalues) >= 1)
         while ((k <= leneig) && (~alreadyFound))
             alreadyFound = found(eigenvalues(k),leneig,ri,ri1,place,rho);
+            k = k + 1;
         end
     end
 end
